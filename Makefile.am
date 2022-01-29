@@ -1,3 +1,8 @@
+all-local:
+	- rm -rf ./share
+	- mkdir -p ./share/gpredict && mkdir -p ./share/pixmaps/gpredict
+	- cp -r ./data ./share/gpredict && cp -r ./pixmaps/* ./share/pixmaps/gpredict/
+
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src doc pixmaps data po
 

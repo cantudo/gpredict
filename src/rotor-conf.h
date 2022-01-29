@@ -43,6 +43,7 @@ typedef struct {
     gchar          *name;       /*!< Configuration file name, less .rot */
     gchar          *host;       /*!< hostname */
     gint            port;       /*!< port number */
+    gint            ssl;        /*!< boolean, wheter or not ssl used in connection */
     gint            cycle;      /*!< cycle period in msec */
     rot_az_type_t   aztype;     /*!< Az type */
     gdouble         minaz;      /*!< Lower azimuth limit */

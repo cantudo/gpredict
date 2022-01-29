@@ -2,6 +2,7 @@
 #ifndef COMPAT_H
 #define COMPAT_H 1
 
+gchar          *exec_dir(void);
 gchar          *get_data_dir(void);
 gchar          *get_maps_dir(void);
 gchar          *get_logo_dir(void);

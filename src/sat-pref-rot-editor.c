@@ -37,6 +37,7 @@ static GtkWidget *dialog;       /* dialog window */
 static GtkWidget *name;         /* Configuration name */
 static GtkWidget *host;         /* host name or IP */
 static GtkWidget *port;         /* port number */
+static GtkWidget *sslcheck;     /* wheter to use SSL in connection */
 static GtkWidget *aztype;
 static GtkWidget *minaz;
 static GtkWidget *maxaz;
@@ -59,6 +60,9 @@ static void update_widgets(rotor_conf_t * conf)
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), conf->port);
     else
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), 4533); /* hamlib default? */
+
+    /* SSL */
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(sslcheck), conf->ssl);
 
     gtk_combo_box_set_active(GTK_COMBO_BOX(aztype), conf->aztype);
 
@@ -157,6 +161,12 @@ static void aztype_changed_cb(GtkComboBox * box, gpointer data)
     }
 }
 
+static const gchar *ssltips =
+    N_("Use SSL encryption for the connection. "
+       "SNI allows device aggregation via a proxy like traefik, "
+       "with SNI, the proxy can identify the servername and route traffic "
+       "to the correct host and port.");
+
 static GtkWidget *create_editor_widgets(rotor_conf_t * conf)
 {
     GtkWidget      *table;
@@ -213,6 +223,14 @@ static GtkWidget *create_editor_widgets(rotor_conf_t * conf)
                                 _("Enter the port number where rotctld is "
                                   "listening. Default is 4533."));
     gtk_grid_attach(GTK_GRID(table), port, 1, 2, 1, 1); 
+
+    sslcheck =
+        gtk_check_button_new_with_label(_("Use TLS with SNI."));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(sslcheck),
+                                 sat_cfg_get_bool
+                                 (SAT_CFG_BOOL_USE_LOCAL_TIME));
+    gtk_widget_set_tooltip_text(sslcheck, _(ssltips));
+    gtk_grid_attach(GTK_GRID(table), sslcheck, 2, 2, 1, 1);
 
     gtk_grid_attach(GTK_GRID(table),
                     gtk_separator_new(GTK_ORIENTATION_HORIZONTAL),
@@ -317,6 +335,9 @@ static gboolean apply_changes(rotor_conf_t * conf)
 
     /* port */
     conf->port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(port));
+
+    /* ssl */
+    conf->ssl = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(sslcheck));
 
     /* az type */
     conf->aztype = gtk_combo_box_get_active(GTK_COMBO_BOX(aztype));

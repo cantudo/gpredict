@@ -28,6 +28,49 @@
 #include <glib.h>
 #include <stdlib.h>
 #include "compat.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+
+
+gchar *exec_dir() {
+    struct stat sb;
+    gchar *buf;
+    ssize_t nbytes, bufsiz;
+
+    if (lstat("/proc/self/exe", &sb) == -1) {
+        // printf("ERROR lstat");
+        exit(EXIT_FAILURE);
+    }
+
+    bufsiz = sb.st_size + 1;
+    if (sb.st_size == 0)
+               bufsiz = PATH_MAX;
+
+    buf = malloc(bufsiz);
+    if (buf == NULL) {
+        // printf("ERROR malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    nbytes = readlink("/proc/self/exe", buf, bufsiz);
+    if (nbytes == -1) {
+        // printf("ERROR readlink");
+        exit(EXIT_FAILURE);
+    }
+
+    // printf("'%s' points to '%.*s'\n", "/proc/self/exe", (int) nbytes, buf);
+
+    for (int i = nbytes - 1; i >= 0; i--) {
+        if (buf[i] == '/') {
+            buf[i + 1] = '\0';
+            break;
+        }
+    }
+
+    return buf;
+}
 
 /**
  * Get data directory.
@@ -42,7 +85,7 @@ gchar          *get_data_dir()
 
 #ifdef G_OS_UNIX
     char* data_dir = getenv("GPREDICT_DATA_DIR");
-    dir = g_strconcat(data_dir ? data_dir : PACKAGE_DATA_DIR, G_DIR_SEPARATOR_S, "data", NULL);
+    dir = g_strconcat(exec_dir(), G_DIR_SEPARATOR_S, "..", data_dir ? data_dir : PACKAGE_DATA_DIR, G_DIR_SEPARATOR_S, "data", NULL);
 #else
 #ifdef G_OS_WIN32
     gchar          *buff =
@@ -89,13 +132,13 @@ gchar          *get_maps_dir()
     gchar          *dir = NULL;
 
 #ifdef G_OS_UNIX
-    dir = g_strconcat(PACKAGE_PIXMAPS_DIR, G_DIR_SEPARATOR_S, "maps", NULL);
+    dir = g_strconcat(exec_dir(), G_DIR_SEPARATOR_S, "..", PACKAGE_PIXMAPS_DIR, G_DIR_SEPARATOR_S, "maps", NULL);
 #else
 #ifdef G_OS_WIN32
     gchar          *buff =
         g_win32_get_package_installation_directory_of_module(NULL);
 
-    dir = g_strconcat(buff, G_DIR_SEPARATOR_S, "share", G_DIR_SEPARATOR_S,
+    dir = g_strconcat(exec_dir(), G_DIR_SEPARATOR_S, "..", buff, G_DIR_SEPARATOR_S, "share", G_DIR_SEPARATOR_S,
                       /* FIXME */
                       "gpredict", G_DIR_SEPARATOR_S, "pixmaps",
                       G_DIR_SEPARATOR_S, "maps", NULL);
@@ -137,7 +180,7 @@ gchar          *get_logo_dir()
     gchar          *dir = NULL;
 
 #ifdef G_OS_UNIX
-    dir = g_strconcat(PACKAGE_PIXMAPS_DIR, G_DIR_SEPARATOR_S, "logos", NULL);
+    dir = g_strconcat(exec_dir(), G_DIR_SEPARATOR_S, "..", PACKAGE_PIXMAPS_DIR, G_DIR_SEPARATOR_S, "logos", NULL);
 #else
 #ifdef G_OS_WIN32
     gchar          *buff =
@@ -166,7 +209,7 @@ gchar          *get_icon_dir()
     gchar          *dir = NULL;
 
 #ifdef G_OS_UNIX
-    dir = g_strconcat(PACKAGE_PIXMAPS_DIR, G_DIR_SEPARATOR_S, "icons", NULL);
+    dir = g_strconcat(exec_dir(), G_DIR_SEPARATOR_S, "..", PACKAGE_PIXMAPS_DIR, G_DIR_SEPARATOR_S, "icons", NULL);
 #else
 #ifdef G_OS_WIN32
     gchar          *buff =
